@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Work Order - Mechanic Activity Report</title>
+
+  <style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+  .navbar { background: white; padding: 1rem 2rem; border-bottom: 1px solid #ddd; }
+  .nav-brand { font-weight: 600; font-size: 1.125rem; margin-bottom: 10px; }
+  .nav-menu { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 10px 0; }
+  .nav-link { padding: 0.5rem 1rem; color: #666; text-decoration: none; border-radius: 6px; display: inline-block; }
+  .nav-link:hover { background: #f0f0f0; }
+  .nav-link.active { background: #fef3c7; color: #b45309 ; }
+  .nav-user { margin-top: 10px; font-size: 0.875rem; color: #666; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .page-title { font-size: 2rem; margin-bottom: 0.5rem; }
+  .page-subtitle { color: #666; margin-bottom: 2rem; }
+
+  .form-container { background: white; padding: 2rem; border-radius: 8px; border: 1px solid #ddd; }
+  .form-section { margin-bottom: 1.25rem; }
+  .section-title { font-size: 1.25rem; margin-bottom: 1rem; }
+  .section-hint { font-size: 0.75rem; color: #9ca3af; font-weight: 400; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .form-row-single { display: block; margin-bottom: 1rem; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-label { font-weight: 600; margin-bottom: 0.5rem; font-size: 0.875rem; }
+  .required { color: #ef4444; }
+  .form-control { padding: 0.625rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.875rem; }
+  .form-control:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+
+  .wo-block { border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; background: #fff; }
+  .block-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #eee; }
+  .block-title { font-size: 1.1rem; font-weight: 700; color: #111827; }
+  .remove-block { background: #fee2e2; color: #b91c1c; border: none; border-radius: 6px; padding: 0.4rem 0.7rem; font-weight: 700; cursor: pointer; line-height: 1; }
+  .remove-block:hover { background: #fecaca; }
+  #addBlock { width: 100%; padding: 0.85rem; border-style: dashed; margin-bottom: 1.25rem; }
+
+  .location-selector { display: flex; gap: 1rem; }
+  .location-option { flex: 1; }
+  .location-option input[type="radio"] { display: none; }
+  .location-card {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.875rem 1rem; border: 2px solid #e5e7eb;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    font-weight: 600; font-size: 0.875rem; color: #374151;
+  }
+  .location-card:hover { border-color: #f59e0b; background: #fef3c7; }
+  .location-option input[type="radio"]:checked + .location-card {
+    border-color: #f59e0b; background: #fef3c7; color: #b45309 ;
+  }
+  .location-icon { font-size: 1.5rem; }
+  .location-label { display: flex; flex-direction: column; }
+  .location-label-main { font-weight: 700; }
+  .location-label-sub { font-size: 0.75rem; font-weight: 400; color: #6b7280; }
+  .location-option input[type="radio"]:checked + .location-card .location-label-sub { color: #f59e0b; }
+
+  .others-banner {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-left: 4px solid #f59e0b;
+    padding: 0.75rem 1rem; border-radius: 6px;
+    margin-bottom: 1rem; color: #78350f;
+    font-size: 0.875rem; font-weight: 600;
+  }
+
+  .component-preview { margin-bottom: 1rem; }
+  .preview-card { background: #f9fafb; padding: 1rem; border-radius: 6px; }
+  .preview-title { font-size: 0.875rem; font-weight: 600; color: #666; margin-bottom: 0.75rem; }
+  .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .preview-item { display: flex; justify-content: space-between; }
+  .preview-label { font-size: 0.875rem; color: #666; }
+  .preview-value { font-size: 0.875rem; font-weight: 600; }
+  .preview-highlight { color: #f59e0b; font-size: 1rem; }
+  .preview-muted { color: #9ca3af; font-style: italic; }
+
+  .work-condition-hint { font-size: 0.75rem; color: #666; margin-top: 0.5rem; font-style: italic; }
+
+  .team-builder { background: #f9fafb; padding: 1.25rem; border-radius: 6px; }
+  .team-members { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+  .team-member-row { display: flex; align-items: center; gap: 0.75rem; }
+  .team-member-row .team-member-select { flex: 1; max-width: 360px; }
+  .team-member-row .team-member-select select { width: 100%; }
+  .team-member-percentage { position: relative; width: 120px; }
+  .percentage-symbol { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); color: #666; pointer-events: none; }
+
+  .team-summary { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd; }
+  .summary-row { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 0.5rem; }
+  .total-value { font-size: 1.25rem; color: #f59e0b; }
+  .validation-success { color: #10b981; }
+  .validation-error { color: #ef4444; }
+  .validation-warning { color: #f59e0b; }
+
+  .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #ddd; }
+
+  .btn { padding: 0.625rem 1.25rem; border: none; border-radius: 6px; font-size: 0.875rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn-primary { background: #f59e0b; color: white; }
+  .btn-primary:hover { background: #b45309 ; }
+  .btn-outline { background: white; border: 1px solid #ddd; color: #666; }
+  .btn-outline:hover { background: #f5f5f5; }
+  .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+  .btn-icon { padding: 0; width: 2rem; height: 2rem; font-size: 1.25rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-danger { background: #ef4444; color: white; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .notification {
+    position: fixed; top: 20px; right: 20px; padding: 16px 24px;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999; font-weight: 600; opacity: 0; transition: opacity 0.3s;
+  }
+  .notification.show { opacity: 1; }
+  .notification.success { background: #10b981; color: white; }
+  .notification.error { background: #ef4444; color: white; }
+
+  /* ── Fase 1: section & cascade ── */
+  .section-selector { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .section-option input[type="radio"] { display: none; }
+  .section-card { display: flex; align-items: center; gap: 0.45rem; padding: 0.55rem 0.9rem; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; background: #fff; }
+  .section-option input[type="radio"]:checked + .section-card { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
+  .cascade-group { display: none; }
+  .cascade-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .cas-loading { font-size: 0.8rem; color: #9ca3af; font-style: italic; margin: 0.25rem 0; display: none; }
+  .others-check-row { margin: 0.35rem 0 0.75rem; font-size: 0.85rem; display: none; }
+  .others-check-row input { margin-right: 0.4rem; }
+  .show-all-mech-row { margin-top: 0.4rem; font-size: 0.8rem; color: #666; }
+  .show-all-mech-row input { margin-right: 0.35rem; }
+  @media (max-width: 640px) {
+    .navbar { padding: 0.875rem 1rem; }
+    .container { padding: 1rem; }
+    .form-container { padding: 1.25rem; }
+    .wo-block { padding: 1rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .preview-grid { grid-template-columns: 1fr; }
+    .location-selector { flex-direction: column; }
+    .team-member-row .team-member-select { max-width: none; }
+    .team-member-percentage { width: 90px; }
+    .page-title { font-size: 1.5rem; }
+    .form-actions { flex-direction: column-reverse; }
+    .form-actions .btn { width: 100%; text-align: center; }
+  }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">⚙️ Mechanic Activity Report</div>
+    <div class="nav-menu">
+      <? if (user.role !== 'mechanic') { ?> <a href="https://script.google.com/macros/s/AKfycbxVk6kf91AQlFo39XWSBugE0OxUvjhx9bsgBNLSPEkQlSh03fV2Ukl_YLcNhoNWUrqmbA/exec?page=dashboard" class="nav-link" target="_top">Dashboard</a> <? } ?>
+      <a href="https://script.google.com/macros/s/AKfycbxVk6kf91AQlFo39XWSBugE0OxUvjhx9bsgBNLSPEkQlSh03fV2Ukl_YLcNhoNWUrqmbA/exec?page=create" class="nav-link active" target="_top">Create WO</a>
+      <a href="https://script.google.com/macros/s/AKfycbxVk6kf91AQlFo39XWSBugE0OxUvjhx9bsgBNLSPEkQlSh03fV2Ukl_YLcNhoNWUrqmbA/exec?page=mechanic" class="nav-link" target="_top">My Work</a>
+      <? if (user.role === 'supervisor' || user.role === 'superintendent') { ?>
+        <a href="https://script.google.com/macros/s/AKfycbxVk6kf91AQlFo39XWSBugE0OxUvjhx9bsgBNLSPEkQlSh03fV2Ukl_YLcNhoNWUrqmbA/exec?page=approvals" class="nav-link" target="_top">Approvals</a>
+      <? } ?>
+      <? if (user.role !== 'mechanic') { ?> <a href="https://script.google.com/macros/s/AKfycbxVk6kf91AQlFo39XWSBugE0OxUvjhx9bsgBNLSPEkQlSh03fV2Ukl_YLcNhoNWUrqmbA/exec?page=reports" class="nav-link" target="_top">Reports</a> <? } ?>
+    </div>
+    <div class="nav-user"><?= user.email ?></div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">Create Work Order 📝</h1>
+      <p class="page-subtitle">Tambahkan satu atau beberapa pekerjaan sekaligus. Setiap blok di bawah akan terbit sebagai 1 work order dengan nomor sendiri.</p>
+    </div>
+
+    <div class="form-container">
+      <form id="createWOForm">
+        <div id="blocksContainer"></div>
+
+        <button type="button" id="addBlock" class="btn btn-outline">+ Add Joblist</button>
+
+        <div class="form-actions">
+          <button type="button" onclick="window.top.location.href='https://script.google.com/macros/s/AKfycbxVk6kf91AQlFo39XWSBugE0OxUvjhx9bsgBNLSPEkQlSh03fV2Ukl_YLcNhoNWUrqmbA/exec?page=dashboard'" class="btn btn-outline">Cancel</button>
+          <button type="submit" id="submitBtn" class="btn btn-primary">Create Work Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Cegah scroll mouse mengubah nilai input angka (semua input number)
+    document.addEventListener('wheel', function() {
+      var el = document.activeElement;
+      if (el && el.tagName === 'INPUT' && el.type === 'number') el.blur();
+    }, { passive: true });
+
+    var PROD_URL = 'https://script.google.com/macros/s/AKfycbxVk6kf91AQlFo39XWSBugE0OxUvjhx9bsgBNLSPEkQlSh03fV2Ukl_YLcNhoNWUrqmbA/exec';
+
+    // Backend data — variable names MUST match template (components, not joblists)
+    var components = <?!= JSON.stringify(components) ?>;
+    var UNITS = <?!= JSON.stringify(units) ?>;
+    var WORK_CONDITIONS = <?!= JSON.stringify(workConditions) ?>;
+    var MECHANICS = <?!= JSON.stringify(mechanics) ?>;
+    var USER_SCOPE = <?!= JSON.stringify(userScope) ?>;  // null = HO (semua cluster)
+    var ALLOWED_SECTIONS = (USER_SCOPE && USER_SCOPE.length) ? USER_SCOPE : ['tyreman', 'field', 'workshop'];
+
+    var blockCount = 0;
+
+    // ── helpers ──
+    function formatJamMenit(h) {
+      h = parseFloat(h) || 0;
+      var j = Math.floor(h); var m = Math.round((h - j) * 60);
+      if (m === 60) { j++; m = 0; }
+      if (j > 0 && m > 0) return j + ' jam ' + m + ' menit';
+      if (j > 0) return j + ' jam';
+      if (m > 0) return m + ' menit';
+      return '0 menit';
+    }
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function componentOptionsHtml() {
+      var html = '<option value="">-- Select Joblist --</option>';
+      for (var i = 0; i < components.length; i++) {
+        var c = components[i];
+        if (c.component_no === 'COM-OTHERS') continue;
+        html += '<option value="' + c.component_no + '"' +
+                ' data-base-points="' + c.base_points + '"' +
+                ' data-target-hours="' + c.target_hours + '">' +
+                '(' + escapeHtml(c.component_no) + ') ' + escapeHtml(c.component_name) +
+                '</option>';
+      }
+      for (var o = 0; o < components.length; o++) {
+        if (components[o].component_no === 'COM-OTHERS') {
+          html += '<option value="COM-OTHERS" data-base-points="0" data-target-hours="0" data-is-others="true">' +
+                  '\u2501\u2501\u2501 OTHERS - Custom Job \u2501\u2501\u2501</option>';
+          break;
+        }
+      }
+      return html;
+    }
+
+    function unitOptionsHtml() {
+      var html = '<option value="">-- Select Unit --</option>';
+      for (var i = 0; i < UNITS.length; i++) {
+        var u = UNITS[i];
+        html += '<option value="' + escapeHtml(u.unit_id) + '" data-factor="' + u.unit_factor + '">' +
+                escapeHtml(u.unit_name) + ' (' + escapeHtml(u.unit_type) + ')</option>';
+      }
+      return html;
+    }
+
+    function wcOptionsHtml() {
+      var html = '<option value="">-- Select Work Condition --</option>';
+      for (var i = 0; i < WORK_CONDITIONS.length; i++) {
+        var w = WORK_CONDITIONS[i];
+        html += '<option value="' + escapeHtml(w.key) + '" data-factor="' + w.factor + '">' +
+                escapeHtml(w.label) + ' (\u00d7' + w.factor + ')</option>';
+      }
+      return html;
+    }
+
+    function mechanicOptionsHtml(section, showAll) {
+      var html = '<option value="">-- Select Mechanic --</option>';
+      for (var i = 0; i < MECHANICS.length; i++) {
+        var m = MECHANICS[i];
+        var mSec = String(m.section || '').toLowerCase();
+        // filter per section (pilihan C): tanpa-section selalu tampil; toggle buka semua
+        if (!showAll && section && mSec && mSec !== section) continue;
+        var tag = (mSec && mSec !== section) ? ' [' + mSec + ']' : '';
+        html += '<option value="' + escapeHtml(m.mechanic_id) + '">' +
+                escapeHtml(m.mechanic_name) + escapeHtml(tag) + '</option>';
+      }
+      return html;
+    }
+
+    function refreshMechanicSelects(blockEl) {
+      var section = getBlockSection(blockEl);
+      var showAll = blockEl.querySelector('.show-all-mech').checked;
+      var sels = blockEl.querySelectorAll('.mechanic-select');
+      for (var i = 0; i < sels.length; i++) {
+        var cur = sels[i].value;
+        sels[i].innerHTML = mechanicOptionsHtml(section, showAll);
+        sels[i].value = cur; // pertahankan pilihan bila masih tersedia
+        if (sels[i].value !== cur) sels[i].value = '';
+      }
+    }
+
+    function sectionRadiosHtml(id) {
+      var labels = { tyreman: '\ud83d\udee2\ufe0f Tyreman', field: '\ud83d\ude9c Field', workshop: '\ud83c\udfed Workshop' };
+      var html = '';
+      for (var i = 0; i < ALLOWED_SECTIONS.length; i++) {
+        var s = String(ALLOWED_SECTIONS[i]).toLowerCase();
+        if (!labels[s]) continue;
+        html += '<label class="section-option"><input type="radio" name="section_' + id + '" value="' + s + '"' + (html === '' ? ' checked' : '') + '><div class="section-card">' + labels[s] + '</div></label>';
+      }
+      return html;
+    }
+
+    function buildBlockHtml(id) {
+      return '' +
+        '<div class="block-header">' +
+          '<span class="block-title">Joblist</span>' +
+          '<button type="button" class="remove-block" title="Remove">&times;</button>' +
+        '</div>' +
+
+        '<div class="others-banner" style="display:none;">' +
+          '\u26a0\ufe0f <strong>Others Mode:</strong> custom job \u2014 isi semua field manual.' +
+        '</div>' +
+
+        '<div class="form-group" style="margin-bottom:0.9rem;">' +
+          '<label class="form-label">Section <span class="required">*</span></label>' +
+          '<div class="section-selector">' + sectionRadiosHtml(id) + '</div>' +
+        '</div>' +
+
+        '<div class="form-group" style="margin-bottom:0.9rem;">' +
+          '<label class="form-label">Keterangan untuk Mekanik <span class="section-hint">(opsional)</span></label>' +
+          '<textarea class="form-control keterangan-input" rows="2" placeholder="cth: unit parkir di pit 3, koordinasi dgn operator dulu"></textarea>' +
+        '</div>' +
+
+        '<label class="others-check-row"><input type="checkbox" class="others-check">Job manual (Others) \u2014 di luar katalog</label>' +
+
+        '<div class="cascade-group">' +
+          '<div class="cascade-row">' +
+            '<div class="form-group cas-unit-group">' +
+              '<label class="form-label">Unit <span class="required">*</span></label>' +
+              '<select class="form-control cas-unit"><option value="">-- Select Unit --</option></select>' +
+            '</div>' +
+            '<div class="form-group cas-model-group" style="display:none;">' +
+              '<label class="form-label">Model Rebuild <span class="required">*</span></label>' +
+              '<select class="form-control cas-model"><option value="">-- Select Model --</option></select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Component <span class="required">*</span></label>' +
+              '<select class="form-control cas-component" disabled><option value="">-- Component --</option></select>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cascade-row">' +
+            '<div class="form-group">' +
+              '<label class="form-label">Sub Component <span class="required">*</span></label>' +
+              '<select class="form-control cas-sub" disabled><option value="">-- Sub Component --</option></select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Job <span class="required">*</span></label>' +
+              '<select class="form-control cas-job" disabled><option value="">-- Job --</option></select>' +
+            '</div>' +
+          '</div>' +
+          '<div class="cas-loading">\u23f3 Memuat katalog job...</div>' +
+        '</div>' +
+
+        '<div class="form-row tyreman-group">' +
+          '<div class="form-group">' +
+            '<label class="form-label">Joblist <span class="required">*</span></label>' +
+            '<select class="form-control component-select">' + componentOptionsHtml() + '</select>' +
+          '</div>' +
+          '<div class="form-group unit-group">' +
+            '<label class="form-label">Unit <span class="required">*</span></label>' +
+            '<select class="form-control unit-select">' + unitOptionsHtml() + '</select>' +
+          '</div>' +
+          '<div class="form-group others-desc-group" style="display:none;">' +
+            '<label class="form-label">Job Description <span class="required">*</span></label>' +
+            '<input type="text" class="form-control others-desc" placeholder="e.g. Bersih gudang, Training mekanik" maxlength="200">' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="others-manual-section" style="display:none;">' +
+          '<div class="form-row">' +
+            '<div class="form-group">' +
+              '<label class="form-label">Base Points <span class="required">*</span></label>' +
+              '<input type="number" class="form-control manual-base-points" min="0.1" step="0.1" placeholder="e.g. 3.0">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Target Hours <span class="required">*</span></label>' +
+              '<input type="number" class="form-control manual-target-hours" min="0.01" step="any" placeholder="e.g. 4.0">' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-row-single">' +
+            '<div class="form-group">' +
+              '<label class="form-label">Unit Factor <span class="required">*</span></label>' +
+              '<input type="number" class="form-control manual-unit-factor" min="0.1" step="0.01" placeholder="e.g. 1.0">' +
+              '<p class="work-condition-hint">Pengali kesulitan (mis. 1.0 standar, 1.2 kompleks)</p>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="form-row">' +
+          '<div class="form-group">' +
+            '<label class="form-label">\ud83d\udccd Location <span class="required">*</span></label>' +
+            '<div class="location-selector">' +
+              '<label class="location-option">' +
+                '<input type="radio" name="location_' + id + '" value="workshop" checked>' +
+                '<div class="location-card"><span class="location-icon">\ud83c\udfed</span>' +
+                  '<div class="location-label"><span class="location-label-main">Workshop</span>' +
+                  '<span class="location-label-sub">Di dalam bengkel</span></div></div>' +
+              '</label>' +
+              '<label class="location-option">' +
+                '<input type="radio" name="location_' + id + '" value="field">' +
+                '<div class="location-card"><span class="location-icon">\ud83d\ude9c</span>' +
+                  '<div class="location-label"><span class="location-label-main">Field</span>' +
+                  '<span class="location-label-sub">Di lokasi lapangan</span></div></div>' +
+              '</label>' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Work Condition <span class="required">*</span></label>' +
+            '<select class="form-control wc-select">' + wcOptionsHtml() + '</select>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="component-preview"><div class="preview-card">' +
+          '<h4 class="preview-title">Preview</h4>' +
+          '<div class="preview-grid">' +
+            '<div class="preview-item"><span class="preview-label">Base Points:</span><span class="preview-value preview-base">-</span></div>' +
+            '<div class="preview-item"><span class="preview-label">Target Hours:</span><span class="preview-value preview-target">-</span></div>' +
+            '<div class="preview-item"><span class="preview-label">Unit Factor:</span><span class="preview-value preview-unit">-</span></div>' +
+            '<div class="preview-item"><span class="preview-label">Work Condition:</span><span class="preview-value preview-wc">-</span></div>' +
+            '<div class="preview-item"><span class="preview-label">Estimated Points:</span><span class="preview-value preview-muted preview-est">-</span></div>' +
+          '</div>' +
+        '</div></div>' +
+
+        '<div class="form-section team-section">' +
+          '<label class="form-label">Team Composition <span class="required">*</span> <span class="section-hint">(tiap mekanik dapat poin penuh)</span></label>' +
+          '<div class="team-builder">' +
+            '<div class="team-members"></div>' +
+            '<button type="button" class="btn btn-outline btn-sm add-team-member">+ Add Team Member</button>' +
+            '<label class="show-all-mech-row"><input type="checkbox" class="show-all-mech">\ud83d\udd13 Tampilkan mekanik semua section</label>' +
+            '<div class="team-summary" style="display:none;">' +
+              '<div class="summary-row"><span>Total Distribution:</span><span class="total-value total-percentage">0%</span></div>' +
+              '<div class="validation-message"></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    // ── Fase 1: katalog job & cascade ──
+    var CATALOG = { field: null, workshop: null };
+    var CATALOG_LOADING = { field: false, workshop: false };
+
+    function getBlockSection(blockEl) {
+      var r = blockEl.querySelector('input[name^="section_"]:checked');
+      return r ? r.value : 'tyreman';
+    }
+
+    function loadCatalog(section, blockEl) {
+      if (CATALOG[section]) { populateCascadeRoot(blockEl, section); return; }
+      var loadEl = blockEl.querySelector('.cas-loading');
+      if (CATALOG_LOADING[section]) { if (loadEl) loadEl.style.display = 'block'; return; }
+      CATALOG_LOADING[section] = true;
+      if (loadEl) loadEl.style.display = 'block';
+      google.script.run.withSuccessHandler(function(res) {
+        CATALOG_LOADING[section] = false;
+        if (res && res.success && res.data && res.data.jobs) {
+          CATALOG[section] = res.data.jobs;
+          var blocks = document.querySelectorAll('.wo-block');
+          for (var i = 0; i < blocks.length; i++) {
+            var le = blocks[i].querySelector('.cas-loading');
+            if (le) le.style.display = 'none';
+            if (getBlockSection(blocks[i]) === section) populateCascadeRoot(blocks[i], section);
+          }
+        } else {
+          if (loadEl) loadEl.style.display = 'none';
+          showNotification('Gagal memuat katalog ' + section + (res && res.error && res.error.message ? ': ' + res.error.message : ''), 'error');
+        }
+      }).withFailureHandler(function(err) {
+        CATALOG_LOADING[section] = false;
+        if (loadEl) loadEl.style.display = 'none';
+        showNotification('Gagal memuat katalog: ' + err.message, 'error');
+      }).getJobCatalog(section);
+    }
+
+    function distinct(arr, key, filterFn) {
+      var seen = {}; var out = [];
+      for (var i = 0; i < arr.length; i++) {
+        if (filterFn && !filterFn(arr[i])) continue;
+        var v = arr[i][key];
+        if (v && !seen[v]) { seen[v] = true; out.push(v); }
+      }
+      return out;
+    }
+
+    function fillSelect(sel, values, placeholder) {
+      var html = '<option value="">' + placeholder + '</option>';
+      for (var i = 0; i < values.length; i++) {
+        html += '<option value="' + escapeHtml(values[i]) + '">' + escapeHtml(values[i]) + '</option>';
+      }
+      sel.innerHTML = html;
+      sel.disabled = values.length === 0;
+    }
+
+    function populateCascadeRoot(blockEl, section) {
+      var jobs = CATALOG[section] || [];
+      if (section === 'field') {
+        // Unit dropdown: hanya unit dgn unit_model milik katalog field
+        var validModels = {};
+        for (var j = 0; j < jobs.length; j++) validModels[String(jobs[j].unit_model).toLowerCase()] = true;
+        var sel = blockEl.querySelector('.cas-unit');
+        var html = '<option value="">-- Select Unit --</option>';
+        for (var i = 0; i < UNITS.length; i++) {
+          var u = UNITS[i];
+          var model = String(u.unit_model || '').toLowerCase().trim();
+          if (!model || !validModels[model]) continue;
+          html += '<option value="' + escapeHtml(u.unit_id) + '" data-factor="' + u.unit_factor + '" data-model="' + escapeHtml(model) + '">' +
+                  escapeHtml(u.unit_name) + ' (' + escapeHtml(u.unit_type) + ')</option>';
+        }
+        sel.innerHTML = html;
+      } else {
+        fillSelect(blockEl.querySelector('.cas-model'), distinct(jobs, 'unit_model'), '-- Select Model --');
+      }
+      resetCascadeFrom(blockEl, 'component');
+    }
+
+    function resetCascadeFrom(blockEl, level) {
+      var comp = blockEl.querySelector('.cas-component');
+      var sub = blockEl.querySelector('.cas-sub');
+      var job = blockEl.querySelector('.cas-job');
+      if (level === 'component') { comp.innerHTML = '<option value="">-- Component --</option>'; comp.disabled = true; }
+      if (level === 'component' || level === 'sub') { sub.innerHTML = '<option value="">-- Sub Component --</option>'; sub.disabled = true; }
+      job.innerHTML = '<option value="">-- Job --</option>'; job.disabled = true;
+      updatePreview(blockEl);
+    }
+
+    function getBlockModel(blockEl) {
+      var section = getBlockSection(blockEl);
+      if (section === 'workshop') return String(blockEl.querySelector('.cas-model').value || '').toLowerCase();
+      var us = blockEl.querySelector('.cas-unit');
+      var opt = us.options[us.selectedIndex];
+      return opt ? String(opt.getAttribute('data-model') || '').toLowerCase() : '';
+    }
+
+    function onCascadeModelOrUnit(blockEl) {
+      var section = getBlockSection(blockEl);
+      var model = getBlockModel(blockEl);
+      var jobs = CATALOG[section] || [];
+      var comps = distinct(jobs, 'component', function(j) { return String(j.unit_model).toLowerCase() === model; });
+      fillSelect(blockEl.querySelector('.cas-component'), comps, '-- Component --');
+      resetCascadeFrom(blockEl, 'sub');
+    }
+
+    function onCascadeComponent(blockEl) {
+      var section = getBlockSection(blockEl);
+      var model = getBlockModel(blockEl);
+      var compVal = blockEl.querySelector('.cas-component').value;
+      var jobs = CATALOG[section] || [];
+      var subs = distinct(jobs, 'sub_component', function(j) {
+        return String(j.unit_model).toLowerCase() === model && j.component === compVal;
+      });
+      fillSelect(blockEl.querySelector('.cas-sub'), subs, '-- Sub Component --');
+      blockEl.querySelector('.cas-job').innerHTML = '<option value="">-- Job --</option>';
+      blockEl.querySelector('.cas-job').disabled = true;
+      updatePreview(blockEl);
+    }
+
+    function onCascadeSub(blockEl) {
+      var section = getBlockSection(blockEl);
+      var model = getBlockModel(blockEl);
+      var compVal = blockEl.querySelector('.cas-component').value;
+      var subVal = blockEl.querySelector('.cas-sub').value;
+      var jobs = CATALOG[section] || [];
+      var sel = blockEl.querySelector('.cas-job');
+      var html = '<option value="">-- Job --</option>';
+      var count = 0;
+      for (var i = 0; i < jobs.length; i++) {
+        var j = jobs[i];
+        if (String(j.unit_model).toLowerCase() !== model) continue;
+        if (j.component !== compVal || j.sub_component !== subVal) continue;
+        html += '<option value="' + escapeHtml(j.job_id) + '" data-base-points="' + j.base_point + '" data-plan-hours="' + j.plan_hours + '">' +
+                escapeHtml(j.job_description) + ' (' + j.plan_hours + ' jam \u00b7 ' + j.base_point + ' pts)</option>';
+        count++;
+      }
+      sel.innerHTML = html;
+      sel.disabled = count === 0;
+      updatePreview(blockEl);
+    }
+
+    function onSectionChange(blockEl) {
+      var section = getBlockSection(blockEl);
+      var isTyre = (section === 'tyreman');
+      var othersCheck = blockEl.querySelector('.others-check');
+      othersCheck.checked = false;
+      blockEl.querySelector('.others-check-row').style.display = isTyre ? 'none' : 'block';
+      blockEl.setAttribute('data-others', '0');
+      blockEl.querySelector('.others-banner').style.display = 'none';
+      blockEl.querySelector('.others-manual-section').style.display = 'none';
+      blockEl.querySelector('.others-desc-group').style.display = 'none';
+
+      // reset pilihan tyreman agar tidak nyangkut
+      blockEl.querySelector('.component-select').value = '';
+      blockEl.querySelector('.tyreman-group').style.display = isTyre ? '' : 'none';
+      blockEl.querySelector('.component-select').parentNode.style.display = '';
+      blockEl.querySelector('.unit-group').style.display = '';
+      blockEl.querySelector('.cascade-group').style.display = isTyre ? 'none' : 'block';
+
+      if (!isTyre) {
+        var isWs = (section === 'workshop');
+        blockEl.querySelector('.cas-unit-group').style.display = isWs ? 'none' : '';
+        blockEl.querySelector('.cas-model-group').style.display = isWs ? '' : 'none';
+        // auto-set radio location sesuai section (tetap bisa diubah manual)
+        var radios = blockEl.querySelectorAll('input[name^="location_"]');
+        for (var r = 0; r < radios.length; r++) radios[r].checked = (radios[r].value === (isWs ? 'workshop' : 'field'));
+        loadCatalog(section, blockEl);
+        if (CATALOG[section]) populateCascadeRoot(blockEl, section);
+      }
+      refreshMechanicSelects(blockEl);
+      updatePreview(blockEl);
+    }
+
+    function onOthersToggle(blockEl) {
+      var checked = blockEl.querySelector('.others-check').checked;
+      blockEl.setAttribute('data-others', checked ? '1' : '0');
+      blockEl.querySelector('.others-banner').style.display = checked ? 'block' : 'none';
+      blockEl.querySelector('.others-manual-section').style.display = checked ? 'block' : 'none';
+      blockEl.querySelector('.cascade-group').style.display = checked ? 'none' : 'block';
+      // pakai kolom deskripsi dari tyreman-group, sembunyikan select component & unit-nya
+      blockEl.querySelector('.tyreman-group').style.display = checked ? '' : 'none';
+      blockEl.querySelector('.component-select').parentNode.style.display = checked ? 'none' : '';
+      blockEl.querySelector('.unit-group').style.display = checked ? 'none' : '';
+      blockEl.querySelector('.others-desc-group').style.display = checked ? 'flex' : 'none';
+      updatePreview(blockEl);
+    }
+
+    // ── block lifecycle ──
+    function addBlock() {
+      blockCount++;
+      var id = blockCount;
+      var div = document.createElement('div');
+      div.className = 'wo-block';
+      div.setAttribute('data-block-id', id);
+      div.setAttribute('data-others', '0');
+      div.innerHTML = buildBlockHtml(id);
+      document.getElementById('blocksContainer').appendChild(div);
+
+      div.querySelector('.component-select').addEventListener('change', function() { onComponentChange(div); });
+      div.querySelector('.unit-select').addEventListener('change', function() { updatePreview(div); });
+      var secRadios = div.querySelectorAll('input[name="section_' + id + '"]');
+      for (var sr = 0; sr < secRadios.length; sr++) {
+        secRadios[sr].addEventListener('change', function() { onSectionChange(div); });
+      }
+      div.querySelector('.others-check').addEventListener('change', function() { onOthersToggle(div); });
+      div.querySelector('.cas-unit').addEventListener('change', function() { onCascadeModelOrUnit(div); });
+      div.querySelector('.cas-model').addEventListener('change', function() { onCascadeModelOrUnit(div); });
+      div.querySelector('.cas-component').addEventListener('change', function() { onCascadeComponent(div); });
+      div.querySelector('.cas-sub').addEventListener('change', function() { onCascadeSub(div); });
+      div.querySelector('.cas-job').addEventListener('change', function() { updatePreview(div); });
+      div.querySelector('.show-all-mech').addEventListener('change', function() { refreshMechanicSelects(div); });
+      if (getBlockSection(div) !== 'tyreman') { onSectionChange(div); }
+      div.querySelector('.wc-select').addEventListener('change', function() { updatePreview(div); });
+      div.querySelector('.manual-base-points').addEventListener('input', function() { updatePreview(div); });
+      div.querySelector('.manual-target-hours').addEventListener('input', function() { updatePreview(div); });
+      div.querySelector('.manual-unit-factor').addEventListener('input', function() { updatePreview(div); });
+      div.querySelector('.others-desc').addEventListener('input', function() { updatePreview(div); });
+      div.querySelector('.add-team-member').addEventListener('click', function() { addTeamMember(div); });
+      div.querySelector('.remove-block').addEventListener('click', function() { removeBlock(id); });
+
+      if (MECHANICS.length > 0) { addTeamMember(div); }
+      renumberBlocks();
+    }
+
+    function removeBlock(id) {
+      var blocks = document.querySelectorAll('.wo-block');
+      if (blocks.length <= 1) { showNotification('Minimal 1 joblist.', 'error'); return; }
+      var el = document.querySelector('.wo-block[data-block-id="' + id + '"]');
+      if (el) { el.remove(); }
+      renumberBlocks();
+    }
+
+    function renumberBlocks() {
+      var blocks = document.querySelectorAll('.wo-block');
+      for (var i = 0; i < blocks.length; i++) {
+        var title = blocks[i].querySelector('.block-title');
+        if (title) { title.textContent = 'Joblist #' + (i + 1); }
+        var rm = blocks[i].querySelector('.remove-block');
+        if (rm) { rm.style.display = (blocks.length <= 1) ? 'none' : 'inline-block'; }
+      }
+    }
+
+    function onComponentChange(blockEl) {
+      var sel = blockEl.querySelector('.component-select');
+      var opt = sel.options[sel.selectedIndex];
+      var isOthers = (opt && opt.getAttribute('data-is-others') === 'true');
+      blockEl.setAttribute('data-others', isOthers ? '1' : '0');
+
+      blockEl.querySelector('.others-banner').style.display = isOthers ? 'block' : 'none';
+      blockEl.querySelector('.unit-group').style.display = isOthers ? 'none' : 'flex';
+      blockEl.querySelector('.others-desc-group').style.display = isOthers ? 'flex' : 'none';
+      blockEl.querySelector('.others-manual-section').style.display = isOthers ? 'block' : 'none';
+
+      updatePreview(blockEl);
+    }
+
+    function updatePreview(blockEl) {
+      var isOthers = (blockEl.getAttribute('data-others') === '1');
+      var sel = blockEl.querySelector('.component-select');
+      var basePoints = 0, targetHours = 0, unitFactor = 0, unitDisplay = '-';
+
+      if (isOthers) {
+        basePoints = parseFloat(blockEl.querySelector('.manual-base-points').value) || 0;
+        targetHours = parseFloat(blockEl.querySelector('.manual-target-hours').value) || 0;
+        unitFactor = parseFloat(blockEl.querySelector('.manual-unit-factor').value) || 0;
+        unitDisplay = unitFactor > 0 ? (unitFactor.toFixed(2) + 'x (Manual)') : '-';
+      } else {
+        var section = getBlockSection(blockEl);
+        if (section === 'field' || section === 'workshop') {
+          var jsel = blockEl.querySelector('.cas-job');
+          var jopt = jsel.options[jsel.selectedIndex];
+          if (jsel.value && jopt) {
+            basePoints = parseFloat(jopt.getAttribute('data-base-points')) || 0;
+            targetHours = parseFloat(jopt.getAttribute('data-plan-hours')) || 0;
+          }
+          if (section === 'workshop') {
+            unitFactor = 1.0; unitDisplay = '1.00x (Workshop)';
+          } else {
+            var fus = blockEl.querySelector('.cas-unit');
+            if (fus.value) {
+              var fuopt = fus.options[fus.selectedIndex];
+              unitFactor = parseFloat(fuopt.getAttribute('data-factor')) || 1.0;
+              unitDisplay = unitFactor.toFixed(2) + 'x';
+            }
+          }
+        } else {
+          var opt = sel.options[sel.selectedIndex];
+          if (opt) {
+            basePoints = parseFloat(opt.getAttribute('data-base-points')) || 0;
+            targetHours = parseFloat(opt.getAttribute('data-target-hours')) || 0;
+          }
+          var unitSel = blockEl.querySelector('.unit-select');
+          if (unitSel.value) {
+            var uopt = unitSel.options[unitSel.selectedIndex];
+            unitFactor = parseFloat(uopt.getAttribute('data-factor')) || 1.0;
+            unitDisplay = unitFactor.toFixed(2) + 'x';
+          }
+        }
+      }
+
+      var wcSel = blockEl.querySelector('.wc-select');
+      var wcFactor = null, wcDisplay = '-';
+      if (wcSel.value) {
+        var wopt = wcSel.options[wcSel.selectedIndex];
+        wcFactor = parseFloat(wopt.getAttribute('data-factor')) || 1.0;
+        var label = wopt.textContent.split('(')[0].replace(/\s+$/, '');
+        wcDisplay = label + ' (' + wcFactor.toFixed(2) + 'x)';
+      }
+
+      blockEl.querySelector('.preview-base').textContent = basePoints.toFixed(2);
+      blockEl.querySelector('.preview-target').textContent = targetHours > 0 ? formatJamMenit(targetHours) : '-';
+      blockEl.querySelector('.preview-unit').textContent = unitDisplay;
+      blockEl.querySelector('.preview-wc').textContent = wcDisplay;
+
+      var est = blockEl.querySelector('.preview-est');
+      if (wcFactor !== null && unitFactor > 0 && basePoints > 0) {
+        est.textContent = (basePoints * unitFactor * wcFactor).toFixed(2) + ' points';
+        est.classList.remove('preview-muted');
+        est.classList.add('preview-highlight');
+      } else {
+        est.textContent = '-';
+        est.classList.remove('preview-highlight');
+        est.classList.add('preview-muted');
+      }
+    }
+
+    // ── team ──
+    function addTeamMember(blockEl) {
+      var container = blockEl.querySelector('.team-members');
+      var row = document.createElement('div');
+      row.className = 'team-member-row';
+      row.innerHTML =
+        '<div class="team-member-select"><select class="form-control mechanic-select">' + mechanicOptionsHtml(getBlockSection(blockEl), blockEl.querySelector('.show-all-mech').checked) + '</select></div>' +
+        '<button type="button" class="btn-icon btn-danger remove-member">&times;</button>';
+      container.appendChild(row);
+      row.querySelector('.remove-member').addEventListener('click', function() { row.remove(); });
+    }
+
+    function updateTeamSummary(blockEl) {
+      // FULL-POINT: tidak ada porsi — summary persentase dinonaktifkan
+      var summary = blockEl.querySelector('.team-summary');
+      if (summary) summary.style.display = 'none';
+    }
+
+    // ── submit ──
+    document.getElementById('addBlock').addEventListener('click', addBlock);
+
+    document.getElementById('createWOForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      var blockEls = document.querySelectorAll('.wo-block');
+      var blocks = [];
+
+      for (var i = 0; i < blockEls.length; i++) {
+        var b = blockEls[i];
+        var idx = i + 1;
+        var isOthers = (b.getAttribute('data-others') === '1');
+
+        var section = getBlockSection(b);
+        var componentId = b.querySelector('.component-select').value;
+        var workCondition = b.querySelector('.wc-select').value;
+
+        if (section === 'tyreman' && !componentId) { showNotification('Joblist #' + idx + ': pilih joblist', 'error'); return; }
+        if (!workCondition) { showNotification('Joblist #' + idx + ': pilih work condition', 'error'); return; }
+
+        var locInputs = b.querySelectorAll('input[type="radio"]');
+        var location = 'workshop';
+        for (var li = 0; li < locInputs.length; li++) {
+          if (locInputs[li].checked) { location = locInputs[li].value; break; }
+        }
+
+        var block = { work_condition: workCondition, location: location, section: section };
+        var ketVal = b.querySelector('.keterangan-input').value.trim();
+        if (ketVal) block.keterangan = ketVal;
+        if (section === 'tyreman' || isOthers) { block.component_id = isOthers ? 'COM-OTHERS' : componentId; }
+
+        if (isOthers) {
+          var desc = b.querySelector('.others-desc').value.trim();
+          var bp = parseFloat(b.querySelector('.manual-base-points').value);
+          var th = parseFloat(b.querySelector('.manual-target-hours').value);
+          var uf = parseFloat(b.querySelector('.manual-unit-factor').value);
+          if (!desc) { showNotification('Joblist #' + idx + ': isi deskripsi job (Others)', 'error'); return; }
+          if (!bp || bp <= 0) { showNotification('Joblist #' + idx + ': Base Points harus > 0', 'error'); return; }
+          if (!th || th <= 0) { showNotification('Joblist #' + idx + ': Target Hours harus > 0', 'error'); return; }
+          if (!uf || uf <= 0) { showNotification('Joblist #' + idx + ': Unit Factor harus > 0', 'error'); return; }
+          block.others_description = desc;
+          block.manual_base_points = bp;
+          block.manual_target_hours = th;
+          block.manual_unit_factor = uf;
+        } else if (section === 'field') {
+          var fUnit = b.querySelector('.cas-unit').value;
+          var fJob = b.querySelector('.cas-job').value;
+          if (!fUnit) { showNotification('Joblist #' + idx + ': pilih unit', 'error'); return; }
+          if (!fJob) { showNotification('Joblist #' + idx + ': pilih job dari katalog', 'error'); return; }
+          block.unit_id = fUnit;
+          block.job_id = fJob;
+        } else if (section === 'workshop') {
+          var wJob = b.querySelector('.cas-job').value;
+          if (!wJob) { showNotification('Joblist #' + idx + ': pilih job dari katalog', 'error'); return; }
+          block.job_id = wJob;
+        } else {
+          var unitId = b.querySelector('.unit-select').value;
+          if (!unitId) { showNotification('Joblist #' + idx + ': pilih unit', 'error'); return; }
+          block.unit_id = unitId;
+        }
+
+        // FULL-POINT: tiap mekanik selalu dikirim 100 (poin penuh, tanpa porsi)
+        var dist = {};
+        var rows = b.querySelectorAll('.team-member-row');
+        for (var r = 0; r < rows.length; r++) {
+          var mid = rows[r].querySelector('.mechanic-select').value;
+          if (mid) {
+            if (dist[mid]) { showNotification('Joblist #' + idx + ': mekanik duplikat', 'error'); return; }
+            dist[mid] = 100;
+          }
+        }
+        if (Object.keys(dist).length === 0) { showNotification('Joblist #' + idx + ': tambah minimal 1 mekanik', 'error'); return; }
+        block.team_distribution = dist;
+
+        blocks.push(block);
+      }
+
+      if (blocks.length === 0) { showNotification('Tambah minimal 1 joblist', 'error'); return; }
+
+      google.script.run.handleCreateWO({ blocks: blocks });
+
+      var msg = (blocks.length > 1)
+        ? ('\u2705 ' + blocks.length + ' work order dikirim! Buat lagi?')
+        : '\u2705 Work order dikirim! Buat lagi?';
+      var redirectUrl = PROD_URL + '?page=create&success=' + encodeURIComponent(msg);
+      window.top.location.href = redirectUrl;
+      setTimeout(function() { window.top.location.replace(redirectUrl); }, 50);
+    });
+
+    function showNotification(message, type) {
+      var n = document.createElement('div');
+      n.className = 'notification notification-' + type + ' ' + type;
+      n.textContent = message;
+      document.body.appendChild(n);
+      setTimeout(function() { n.classList.add('show'); }, 100);
+      setTimeout(function() {
+        n.classList.remove('show');
+        setTimeout(function() { if (n.parentNode) document.body.removeChild(n); }, 300);
+      }, 3000);
+    }
+
+    // ── init ──
+    window.addEventListener('DOMContentLoaded', function() {
+      var params = new URLSearchParams(window.location.search);
+      var successMsg = params.get('success');
+      if (successMsg) { showNotification(decodeURIComponent(successMsg), 'success'); }
+      addBlock();
+    });
+  </script>
+</body>
+</html>
